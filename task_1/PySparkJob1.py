@@ -15,14 +15,17 @@ def process(spark, flights_path, result_path):
     :param flights_path: путь до датасета c рейсами
     :param result_path: путь с результатами преобразований
     """
+
     flights_df = spark.read.parquet(flights_path)
+    print(flights_df.rdd.getNumPartitions())
     res_df = flights_df[['TAIL_NUMBER']] \
         .groupby('TAIL_NUMBER') \
         .agg(F.count('TAIL_NUMBER').alias('count')) \
         .orderBy(F.col('count').desc()) \
         .limit(10)
-    #res_df.show(truncate=False, n=100)
-    res_df.write.mode("overwrite").parquet(result_path)
+    # print(res_df.rdd.getNumPartitions())
+    res_df.show(truncate=False, n=100)
+    # res_df.write.mode("overwrite").parquet(result_path)
 
 
 def main(flights_path, result_path):

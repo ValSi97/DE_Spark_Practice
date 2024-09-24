@@ -63,6 +63,7 @@ trips_schema = StructType([
 
 def agg_calc(spark: SparkSession) -> DataFrame:
     data_path = os.path.join(Path(__name__).parent, './data', '*.csv')
+    #data_path = os.path.join(Path(__name__).parent.absolute(), 'data', '*.csv')
 
     trip_fact = spark.read \
         .option("header", "true") \
@@ -117,30 +118,30 @@ def main(spark: SparkSession):
     datamart = agg_calc(spark).cache()
     datamart.show(truncate=False, n=100)
 
-    joined_datamart = datamart \
-        .join(other=vendor_dim, on=vendor_dim['id'] == f.col('vendor_id'), how='inner') \
-        .join(other=payment_dim, on=payment_dim['id'] == f.col('payment_type'), how='inner') \
-        .join(other=rates_dim, on=rates_dim['id'] == f.col('ratecode_id'), how='inner') \
-        .select(f.col('dt'),
-                f.col('vendor_id'), f.col('payment_type'), f.col('ratecode_id'), f.col('sum_amount'),
-                f.col('avg_tips'),
-                rates_dim['name'].alias('rate_name'), vendor_dim['name'].alias('vendor_name'),
-                payment_dim['name'].alias('payment_name'),
-                )
-
-    joined_datamart.show(truncate=False, n=50)
+    # joined_datamart = datamart \
+    #     .join(other=vendor_dim, on=vendor_dim['id'] == f.col('vendor_id'), how='inner') \
+    #     .join(other=payment_dim, on=payment_dim['id'] == f.col('payment_type'), how='inner') \
+    #     .join(other=rates_dim, on=rates_dim['id'] == f.col('ratecode_id'), how='inner') \
+    #     .select(f.col('dt'),
+    #             f.col('vendor_id'), f.col('payment_type'), f.col('ratecode_id'), f.col('sum_amount'),
+    #             f.col('avg_tips'),
+    #             rates_dim['name'].alias('rate_name'), vendor_dim['name'].alias('vendor_name'),
+    #             payment_dim['name'].alias('payment_name'),
+    #             )
+    #
+    # joined_datamart.show(truncate=False, n=50)
 
     #joined_datamart.write.mode('overwrite').csv('output')
 
-    save_to_mysql(
-        host=MYSQL_HOST,
-        port=MYSQL_PORT,
-        db_name=MYSQL_DATABASE,
-        username=MYSQL_USER,
-        password=MYSQL_PASSWORD,
-        df=joined_datamart,
-        table_name=f'{MYSQL_DATABASE}.{MYSQL_TABLE}'
-    )
+    # save_to_mysql(
+    #     host=MYSQL_HOST,
+    #     port=MYSQL_PORT,
+    #     db_name=MYSQL_DATABASE,
+    #     username=MYSQL_USER,
+    #     password=MYSQL_PASSWORD,
+    #     df=joined_datamart,
+    #     table_name=f'{MYSQL_DATABASE}.{MYSQL_TABLE}'
+    # )
 
     print('end')
 
